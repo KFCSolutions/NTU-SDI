@@ -4,32 +4,32 @@
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <SDL.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb-image.h>
 #include <imfilebrowser.h>
 #include <algorithm>
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h>    // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>    // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>  // Initialize with gladLoadGL()
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
+#include <GL/gl3w.h>  
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <fstream>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb-image.h>
 
 ImVec2 mousePosInCanvas1;
 ImVec2 mousePosInCanvas2;
 ImVec2 mousePosInCanvas3;
 
-static std::string curImg = "KFC.jpg";
-static std::string curTag = "N/A";
-static bool showImage = false;
+std::string curImg = "KFC.jpg";
+std::string curTag = "N/A";
+std::string curLabel = "N/A";
+
+bool isImageModuleAlreadyOpen = false;
+bool isTextureAlreadyLoaded = false;
+int item_current = 0;
+int my_image_width = 0;
+int my_image_height = 0;
+GLuint my_image_texture = 0;
 std::vector<std::string> images = {  };
+std::vector< std::vector<std::string>> labels;
 std::vector<std::string> classes = {  };
 ImGui::FileBrowser addImageDialog;
 ImGui::FileBrowser classFileDialog;
@@ -82,20 +82,19 @@ int guiInit() {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 }
 
-static void loadImage(std::string img) {
-	int my_image_width = 0;
-	int my_image_height = 0;
-	GLuint my_image_texture = 0;
-	bool ret = loadTextureFromFile(img.c_str(), &my_image_texture, &my_image_width, &my_image_height);
+void loadImageModule(std::string img) {
 	ImGui::Begin(img.c_str());
-	ImVec2 canvas_pos = ImGui::GetCursorScreenPos(); 
-	ImVec2 canvas_size = ImGui::GetContentRegionAvail();    
-	ImGui::Text("pointer = %p", my_image_texture);
-	ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+	if (isTextureAlreadyLoaded) {
+		bool ret = loadTextureFromFile(img.c_str(), &my_image_texture, &my_image_width, &my_image_height);
+		ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+		ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+		isTextureAlreadyLoaded = false;
+	}
+	ImGui::Text("Image Size = %d x %d", my_image_width, my_image_height);
 	ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
 
 	//TODO: this is just demo code for drawing images and a prototype. Need to fully rework this
-	std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
+	/*std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
 	std::cout <<mousePosInCanvas2.x << ": " <<mousePosInCanvas2.y << std::endl;
 	std::cout <<mousePosInCanvas3.x << ": " <<mousePosInCanvas3.y << std::endl;
 	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x +mousePosInCanvas2.x, canvas_pos.y +mousePosInCanvas2.y), ImVec2(canvas_pos.x +mousePosInCanvas3.x, canvas_pos.y +mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
@@ -111,13 +110,12 @@ static void loadImage(std::string img) {
 	if (GetKeyState('E') & 0x8000)
 	{
 		mousePosInCanvas3 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
-	}
+	}*/
 
 	ImGui::End();
 }
 
-static void initMainMenu() {
-	bool show_shape = false;
+void setUpDialogs() {
 
 	//Main Menu Browser dialogs init
 	addImageDialog.SetTitle("Add new Image");
@@ -126,63 +124,19 @@ static void initMainMenu() {
 	classFileDialog.SetTitle("Select Class File");
 	classFileDialog.SetTypeFilters({ ".class", });
 
-	// Main Menu init. All this draws the main menu
-	ImGui::Begin("NTU Programming Assignment - By KFC Solutions"); 
-	if (ImGui::CollapsingHeader("Images")) {
-		if (ImGui::Button("Add Image"))
-			addImageDialog.Open();
-		ImGui::SameLine();
-		ImGui::Text("%d Images Loaded", images.size());
-		ImGuiIO& io = ImGui::GetIO();
-		if (ImGui::TreeNode("Loaded Images")) {
-
-			for (auto value : images) {
-				if (ImGui::Button(value.c_str())) {
-					curImg = value;
-					std::cout << "Setting Current Image to :" << curImg << std::endl;
-					showImage = true;
-				}
-
-			}
-			ImGui::TreePop();
-		}
-	}
-	if (ImGui::CollapsingHeader("Classes")) {
-		if (ImGui::Button("Pick Class File"))
-			classFileDialog.Open();
-		ImGui::SameLine();
-		ImGui::Text("%d Classes Loaded", classes.size());
-		ImGui::Text("Currently selected tag: %s", curTag.c_str());
-		ImGuiIO& io = ImGui::GetIO();
-		if (ImGui::TreeNode("Loaded Classes")) {
-
-			for (auto value : classes) {
-				if (ImGui::Button(value.c_str())) {
-					curTag = value;
-					std::cout << "Setting Current Class Tag :" << curTag << std::endl;
-				}
-
-			}
-			ImGui::TreePop();
-		}
-
-	}
-
-	ImGui::End();
-
 	addImageDialog.Display();
 	classFileDialog.Display();
 
 	// Do the following when a file is selected from the file browse 
 	if (addImageDialog.HasSelected())
 	{
-		//std::cout << "Selected filename" << addImageDialog.GetSelected().string() << std::endl;
 		images.push_back(addImageDialog.GetSelected().string());
 		addImageDialog.ClearSelected();
 	}
 
 	if (classFileDialog.HasSelected())
 	{
+		classes = { };
 		std::string line;
 		std::cout << "Selected filename" << classFileDialog.GetSelected().string() << std::endl;
 		std::ifstream file(classFileDialog.GetSelected().string());
@@ -195,19 +149,118 @@ static void initMainMenu() {
 
 }
 
+void initMainMenu() {
+	//Starts drawing the menu dialog
+	ImGui::Begin("NTU Programming Assignment - By KFC Solutions"); // Sets the title of the dialog
+	if (ImGui::CollapsingHeader("Images")) {
+		if (ImGui::Button("Add Image"))
+			addImageDialog.Open();
+		ImGui::SameLine();
+		ImGui::Text("%d Images Loaded", images.size());
+		if (ImGui::Button("Ascending Order")) {
+			std::sort(images.begin(), images.end());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Decending Order")) {
+			std::sort(images.rbegin(), images.rend());
+		}
+		ImGuiIO& io = ImGui::GetIO();
+		if (ImGui::TreeNode("Loaded Images")) {
+			for (auto imageLocation : images) {
+				std::string fileName = imageLocation.substr(imageLocation.find_last_of("\\") + 1);
+				if (ImGui::Button(fileName.c_str())) {
+					curImg = imageLocation;
+					std::cout << "Setting Current Image to :" << curImg << std::endl;
+					isImageModuleAlreadyOpen = true;
+					isTextureAlreadyLoaded = true;
+				}
+			}
+			ImGui::TreePop();
+		}
+	}
 
-// Main code
+	if (ImGui::CollapsingHeader("Classes")) {
+		if (ImGui::Button("Pick Class File"))
+			classFileDialog.Open();
+		ImGui::SameLine();
+		ImGui::Text("%d Classes Loaded", classes.size());
+		ImGui::Text("Currently selected tag: %s", curTag.c_str());
+		if (ImGui::Button("Ascending Order ")) {
+			std::sort(classes.begin(), classes.end());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Decending Order ")) {
+			std::sort(classes.rbegin(), classes.rend());
+		}
+		ImGuiIO& io = ImGui::GetIO();
+		if (ImGui::TreeNode("Loaded Classes")) {
+			for (auto value : classes) {
+				if (ImGui::Button(value.c_str())) {
+					curTag = value.c_str();
+					std::cout << "Setting Current Class Tag :" << curTag << std::endl;
+				}
+			}
+			ImGui::TreePop();
+		}
+	}
+
+
+	if (ImGui::CollapsingHeader("Annotations")) {
+		ImGui::Text("Currently selected label: %s", curLabel.c_str());
+		const char* items[] = { "Triangle", "Circle", "Rectangle", "Polygon" };
+		ImGui::Combo("Select Shape", &item_current, items, IM_ARRAYSIZE(items));
+
+		if (ImGui::Button("New Label")) {
+			std::vector<std::string> label;
+			label.push_back(curTag);
+			switch (item_current) {
+			case 0:
+				label.push_back("Triangle");
+				break;
+			case 1:
+				label.push_back("Trapezium");
+				break;
+			case 2:
+				label.push_back("Rectangle");
+				break;
+			case 3:
+				label.push_back("Polygon");
+				break;
+			}
+			label.push_back(curImg);
+			labels.push_back(label);
+		}
+		ImGuiIO& io = ImGui::GetIO();
+		std::string title = "List of labels for image: " + curImg;
+		if (ImGui::TreeNode(title.c_str())) {
+			for (std::vector<std::string> label : labels) {
+				if (label[2] == curImg) {
+					std::string name = label[0] + " [" + label[1] + "]";
+					if (ImGui::Button(name.c_str())) {
+						curLabel = label[0];
+					}
+				}
+			}
+			ImGui::TreePop();
+		}
+	}
+
+	ImGui::End();	
+	setUpDialogs();
+	}
+
+// Entry Point -- This is what gets executed first
 int main(int, char**)
 {
+	// Runs some basic SDL setup
 	guiInit();
-    // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     SDL_Window* window = SDL_CreateWindow("Known For Code Solutions Image Labeler - NTU Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); 
-
+	// Setting up OpenGL gl3w 
     bool err = gl3wInit() != 0;
     if (err)
     {
@@ -228,7 +281,7 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 backgroundColor = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
 
     // Main loop
     bool done = false;
@@ -248,16 +301,18 @@ int main(int, char**)
         ImGui_ImplSDL2_NewFrame(window);
 		ImGui::NewFrame();
 
-		// USED FOR DEBUGGING IMGUI ImGui::ShowDemoWindow();
-		if (showImage)
-			loadImage(curImg);
+
+		if (isImageModuleAlreadyOpen)
+			loadImageModule(curImg);
+
+		// Calls the function to render the UI
 		initMainMenu();
-		
 	
         // Rendering
         ImGui::Render();
+		// This sets up the background and sets its colour
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);

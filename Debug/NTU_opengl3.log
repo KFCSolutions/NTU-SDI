@@ -1,16 +1,9 @@
-﻿  imgui.cpp
-  imgui_demo.cpp
-  imgui_draw.cpp
-  imgui_widgets.cpp
-  imgui_impl_opengl3.cpp
-  imgui_impl_sdl.cpp
-  main.cpp
-C:\Users\Movinggun\NTU-SDI\main.cpp(95,73): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Movinggun\NTU-SDI\main.cpp(95,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Movinggun\NTU-SDI\main.cpp(89,7): warning C4189: 'ret': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(120,7): warning C4189: 'show_shape': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(136,12): warning C4189: 'io': local variable is initialized but not referenced
-  Generating Code...
-C:\Users\Movinggun\NTU-SDI\main.cpp(156,12): warning C4189: 'io': local variable is initialized but not referenced
+﻿  main.cpp
+C:\Users\Movinggun\NTU-SDI\main.cpp(94,73): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Movinggun\NTU-SDI\main.cpp(94,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Movinggun\NTU-SDI\main.cpp(88,8): warning C4189: 'ret': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(167,12): warning C4189: 'io': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(195,12): warning C4189: 'io': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(233,12): warning C4189: 'io': local variable is initialized but not referenced
 C:\Users\Movinggun\NTU-SDI\main.cpp(83): warning C4715: 'guiInit': not all control paths return a value
   NTU_opengl3.vcxproj -> C:\Users\Movinggun\NTU-SDI\Debug\ntu_software_design.exe

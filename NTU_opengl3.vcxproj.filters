@@ -11,6 +11,9 @@
     <Filter Include="gl3w">
       <UniqueIdentifier>{f9997b32-5479-4756-9ffc-77793ad3764f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{bc766e37-c03a-4c61-9f62-5edf7ba29994}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -37,6 +40,9 @@
     <ClCompile Include="libs\gl3w\GL\gl3w.c">
       <Filter>gl3w</Filter>
     </ClCompile>
+    <ClCompile Include="KFC_Dialogs.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui_impl_sdl.h">
@@ -60,11 +66,17 @@
     <ClInclude Include="libs\gl3w\GL\glcorearb.h">
       <Filter>gl3w</Filter>
     </ClInclude>
+    <ClInclude Include="imfilebrowser.h">
+      <Filter>sources</Filter>
+    </ClInclude>
     <ClInclude Include="stb-image.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="imfilebrowser.h">
-      <Filter>sources</Filter>
+    <ClInclude Include="includes.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KFC_Dialogs.h">
+      <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
