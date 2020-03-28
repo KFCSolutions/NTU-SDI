@@ -34,6 +34,7 @@ std::vector<std::string> classes = {  };
 ImGui::FileBrowser addImageDialog;
 ImGui::FileBrowser classFileDialog;
 
+
 bool loadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
 {
 	// Load from file
@@ -82,22 +83,12 @@ int guiInit() {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 }
 
-void loadImageModule(std::string img) {
-	ImGui::Begin(img.c_str());
-	if (isTextureAlreadyLoaded) {
-		bool ret = loadTextureFromFile(img.c_str(), &my_image_texture, &my_image_width, &my_image_height);
-		ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-		ImVec2 canvas_size = ImGui::GetContentRegionAvail();
-		isTextureAlreadyLoaded = false;
-	}
-	ImGui::Text("Image Size = %d x %d", my_image_width, my_image_height);
-	ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
 
-	//TODO: this is just demo code for drawing images and a prototype. Need to fully rework this
-	/*std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
-	std::cout <<mousePosInCanvas2.x << ": " <<mousePosInCanvas2.y << std::endl;
-	std::cout <<mousePosInCanvas3.x << ": " <<mousePosInCanvas3.y << std::endl;
-	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x +mousePosInCanvas2.x, canvas_pos.y +mousePosInCanvas2.y), ImVec2(canvas_pos.x +mousePosInCanvas3.x, canvas_pos.y +mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
+void editLabelTriangle(ImVec2 canvas_pos, ImVec2 canvas_size) {
+	std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
+	std::cout << mousePosInCanvas2.x << ": " << mousePosInCanvas2.y << std::endl;
+	std::cout << mousePosInCanvas3.x << ": " << mousePosInCanvas3.y << std::endl;
+	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x + mousePosInCanvas2.x, canvas_pos.y + mousePosInCanvas2.y), ImVec2(canvas_pos.x + mousePosInCanvas3.x, canvas_pos.y + mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
 
 	if (GetKeyState('Q') & 0x8000)
 	{
@@ -110,7 +101,49 @@ void loadImageModule(std::string img) {
 	if (GetKeyState('E') & 0x8000)
 	{
 		mousePosInCanvas3 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
-	}*/
+	}
+}
+
+void drawLabelTriangle(ImVec2 canvas_pos, ImVec2 canvas_size) {
+	std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
+	std::cout << mousePosInCanvas2.x << ": " << mousePosInCanvas2.y << std::endl;
+	std::cout << mousePosInCanvas3.x << ": " << mousePosInCanvas3.y << std::endl;
+	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x + mousePosInCanvas2.x, canvas_pos.y + mousePosInCanvas2.y), ImVec2(canvas_pos.x + mousePosInCanvas3.x, canvas_pos.y + mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
+}
+
+void modifySelectedLabelPositions(ImVec2 canvas_pos, ImVec2 canvas_size) {
+	for (std::vector<std::string> label : labels) {
+		if (label[0] == curLabel) {
+			if (label[1] == "Triangle") {
+				editLabelTriangle(canvas_pos, canvas_size);
+			}
+		}
+	}
+}
+
+void drawShapes(ImVec2 canvas_pos, ImVec2 canvas_size) {
+	for (std::vector<std::string> label : labels) {
+		if (label[2] == curImg) {
+			if (label[1] == "Triangle") {
+				drawLabelTriangle(canvas_pos, canvas_size);
+			}
+			
+		}
+	}
+}
+
+void loadImageModule(std::string img) {
+	ImGui::Begin(img.c_str());
+	ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+	ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+	if (isTextureAlreadyLoaded) {
+		bool ret = loadTextureFromFile(img.c_str(), &my_image_texture, &my_image_width, &my_image_height);
+		isTextureAlreadyLoaded = false;
+	}
+	ImGui::Text("Image Size = %d x %d", my_image_width, my_image_height);
+	ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
+	modifySelectedLabelPositions(canvas_pos, canvas_size);
+	drawShapes(canvas_pos, canvas_size);
 
 	ImGui::End();
 }
@@ -149,6 +182,7 @@ void setUpDialogs() {
 
 }
 
+
 void initMainMenu() {
 	//Starts drawing the menu dialog
 	ImGui::Begin("NTU Programming Assignment - By KFC Solutions"); // Sets the title of the dialog
@@ -173,6 +207,7 @@ void initMainMenu() {
 					std::cout << "Setting Current Image to :" << curImg << std::endl;
 					isImageModuleAlreadyOpen = true;
 					isTextureAlreadyLoaded = true;
+					curLabel = "N/A";
 				}
 			}
 			ImGui::TreePop();
@@ -207,7 +242,7 @@ void initMainMenu() {
 
 	if (ImGui::CollapsingHeader("Annotations")) {
 		ImGui::Text("Currently selected label: %s", curLabel.c_str());
-		const char* items[] = { "Triangle", "Circle", "Rectangle", "Polygon" };
+		const char* items[] = { "Triangle", "Trapezium", "Rectangle", "Polygon" };
 		ImGui::Combo("Select Shape", &item_current, items, IM_ARRAYSIZE(items));
 
 		if (ImGui::Button("New Label")) {
@@ -244,6 +279,20 @@ void initMainMenu() {
 			ImGui::TreePop();
 		}
 	}
+
+
+	if (ImGui::CollapsingHeader("Information")) {
+		ImGui::Text("KEYBINDING FOR POINTS");
+		ImGui::BulletText("POINT 1: F1");
+		ImGui::BulletText("POINT 2: F2");
+		ImGui::BulletText("POINT 3: F3");
+		ImGui::BulletText("POINT 4: F4");
+		ImGui::BulletText("POINT 5: F5");
+		ImGui::BulletText("POINT 6: F6");
+		ImGui::BulletText("POINT 7: F7");
+		ImGui::BulletText("POINT 8: F8");
+	}
+
 
 	ImGui::End();	
 	setUpDialogs();
