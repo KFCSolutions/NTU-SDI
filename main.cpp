@@ -13,10 +13,7 @@
 #include <fstream>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb-image.h>
-
-ImVec2 mousePosInCanvas1;
-ImVec2 mousePosInCanvas2;
-ImVec2 mousePosInCanvas3;
+#include "KFCLabel.h"
 
 std::string curImg = "KFC.jpg";
 std::string curTag = "N/A";
@@ -28,11 +25,13 @@ int item_current = 0;
 int my_image_width = 0;
 int my_image_height = 0;
 GLuint my_image_texture = 0;
+float polygonSize = 0;
+int poloygonEdges = 0;
 std::vector<std::string> images = {  };
-std::vector< std::vector<std::string>> labels;
 std::vector<std::string> classes = {  };
 ImGui::FileBrowser addImageDialog;
 ImGui::FileBrowser classFileDialog;
+std::vector<KFCLabel> KFCLabels;
 
 
 bool loadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
@@ -84,50 +83,73 @@ int guiInit() {
 }
 
 
-void editLabelTriangle(ImVec2 canvas_pos, ImVec2 canvas_size) {
-	std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
-	std::cout << mousePosInCanvas2.x << ": " << mousePosInCanvas2.y << std::endl;
-	std::cout << mousePosInCanvas3.x << ": " << mousePosInCanvas3.y << std::endl;
-	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x + mousePosInCanvas2.x, canvas_pos.y + mousePosInCanvas2.y), ImVec2(canvas_pos.x + mousePosInCanvas3.x, canvas_pos.y + mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
+void drawShapes(ImVec2 canvas_pos, ImVec2 canvas_size, int labelID) {
+	if (KFCLabels[labelID].shape == "Triangle") {
+		ImGui::GetOverlayDrawList()->AddTriangle(
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y), 
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas2.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas2.y), 
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas3.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
 
-	if (GetKeyState('Q') & 0x8000)
-	{
-		mousePosInCanvas1 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		ImGui::GetWindowDrawList()->AddText(ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas2.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas2.y), ImColor(1.0f, 1.0f, 1.0f, 1.0f), KFCLabels[labelID].className.c_str());
 	}
-	if (GetKeyState('W') & 0x8000)
-	{
-		mousePosInCanvas2 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+
+	if (KFCLabels[labelID].shape == "Rectangle") {
+		ImGui::GetOverlayDrawList()->AddRect(
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y),
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas2.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas2.y),
+			IM_COL32(0, 255, 0, 200),
+			0,
+			ImDrawCornerFlags_TopLeft | ImDrawCornerFlags_BotRight,
+			5);
+		ImGui::GetWindowDrawList()->AddText(ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y), ImColor(1.0f, 1.0f, 1.0f, 1.0f), KFCLabels[labelID].className.c_str());
 	}
-	if (GetKeyState('E') & 0x8000)
-	{
-		mousePosInCanvas3 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+
+	if (KFCLabels[labelID].shape == "Trapezium") {
+		ImGui::GetOverlayDrawList()->AddQuad(
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y),
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas2.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas2.y),
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas3.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas3.y),
+			ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas4.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas4.y),
+			IM_COL32(0, 255, 0, 200), 5);
+		ImGui::GetWindowDrawList()->AddText(ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y), ImColor(1.0f, 1.0f, 1.0f, 1.0f), KFCLabels[labelID].className.c_str());
+	}
+
+	if (KFCLabels[labelID].shape == "Polygon") {
+		float sz = 76.0f;
+		ImGui::GetOverlayDrawList()->AddCircle(ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y), KFCLabels[labelID].polySize * 0.5f, IM_COL32(0, 255, 0, 200), KFCLabels[labelID].edges, 5);
+		ImGui::GetWindowDrawList()->AddText(ImVec2(canvas_pos.x + KFCLabels[labelID].mousePosInCanvas1.x + KFCLabels[labelID].polySize * 0.5f, canvas_pos.y + KFCLabels[labelID].mousePosInCanvas1.y), ImColor(1.0f, 1.0f, 1.0f, 1.0f), KFCLabels[labelID].className.c_str());
+	}
+
+
+
+	if (KFCLabels[labelID].className == curLabel) {
+		KFCLabels[labelID].polySize = polygonSize;
+		KFCLabels[labelID].edges = poloygonEdges;
+		if (GetKeyState(0x70) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas1 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x71) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas2 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x72) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas3 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x73) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas4 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x74) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas5 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x75) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas6 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x76) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas7 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
+		if (GetKeyState(0x77) & 0x8000)
+			KFCLabels[labelID].mousePosInCanvas8 = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
 	}
 }
 
-void drawLabelTriangle(ImVec2 canvas_pos, ImVec2 canvas_size) {
-	std::cout << mousePosInCanvas1.x << ": " << mousePosInCanvas1.y << std::endl;
-	std::cout << mousePosInCanvas2.x << ": " << mousePosInCanvas2.y << std::endl;
-	std::cout << mousePosInCanvas3.x << ": " << mousePosInCanvas3.y << std::endl;
-	ImGui::GetOverlayDrawList()->AddTriangle(ImVec2(canvas_pos.x + mousePosInCanvas1.x, canvas_pos.y + mousePosInCanvas1.y), ImVec2(canvas_pos.x + mousePosInCanvas2.x, canvas_pos.y + mousePosInCanvas2.y), ImVec2(canvas_pos.x + mousePosInCanvas3.x, canvas_pos.y + mousePosInCanvas3.y), IM_COL32(0, 255, 0, 200), 5);
-}
 
-void modifySelectedLabelPositions(ImVec2 canvas_pos, ImVec2 canvas_size) {
-	for (std::vector<std::string> label : labels) {
-		if (label[0] == curLabel) {
-			if (label[1] == "Triangle") {
-				editLabelTriangle(canvas_pos, canvas_size);
-			}
-		}
-	}
-}
 
-void drawShapes(ImVec2 canvas_pos, ImVec2 canvas_size) {
-	for (std::vector<std::string> label : labels) {
-		if (label[2] == curImg) {
-			if (label[1] == "Triangle") {
-				drawLabelTriangle(canvas_pos, canvas_size);
-			}
-			
+void drawLabels(ImVec2 canvas_pos, ImVec2 canvas_size) {
+	for (int i = 0; i < KFCLabels.size(); i++) {
+		if (KFCLabels[i].filePath == curImg) {
+			drawShapes(canvas_pos, canvas_size, i );			
 		}
 	}
 }
@@ -142,8 +164,7 @@ void loadImageModule(std::string img) {
 	}
 	ImGui::Text("Image Size = %d x %d", my_image_width, my_image_height);
 	ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
-	modifySelectedLabelPositions(canvas_pos, canvas_size);
-	drawShapes(canvas_pos, canvas_size);
+	drawLabels(canvas_pos, canvas_size);
 
 	ImGui::End();
 }
@@ -244,35 +265,43 @@ void initMainMenu() {
 		ImGui::Text("Currently selected label: %s", curLabel.c_str());
 		const char* items[] = { "Triangle", "Trapezium", "Rectangle", "Polygon" };
 		ImGui::Combo("Select Shape", &item_current, items, IM_ARRAYSIZE(items));
+		if (item_current == 3) {
+			if (ImGui::TreeNode("Polygon Settings")) {
 
+				ImGui::DragFloat("Size", &polygonSize, 30.2f, 31.0f, 200.0f, "%.0f");
+				ImGui::DragInt("Edges", &poloygonEdges, 1, 0, 8);
+				ImGui::TreePop();
+			}
+		}
 		if (ImGui::Button("New Label")) {
-			std::vector<std::string> label;
-			label.push_back(curTag);
+			KFCLabel kfcLabel("label");
+			KFCLabels.push_back(kfcLabel);
+			int labelID = KFCLabels.size() - 1;
+			KFCLabels[labelID].className = curTag;
 			switch (item_current) {
 			case 0:
-				label.push_back("Triangle");
+				KFCLabels[labelID].shape = "Triangle";
 				break;
 			case 1:
-				label.push_back("Trapezium");
+				KFCLabels[labelID].shape = "Trapezium";
 				break;
 			case 2:
-				label.push_back("Rectangle");
+				KFCLabels[labelID].shape = "Rectangle";
 				break;
 			case 3:
-				label.push_back("Polygon");
+				KFCLabels[labelID].shape = "Polygon";
 				break;
 			}
-			label.push_back(curImg);
-			labels.push_back(label);
+			KFCLabels[labelID].filePath = curImg;
 		}
 		ImGuiIO& io = ImGui::GetIO();
 		std::string title = "List of labels for image: " + curImg;
 		if (ImGui::TreeNode(title.c_str())) {
-			for (std::vector<std::string> label : labels) {
-				if (label[2] == curImg) {
-					std::string name = label[0] + " [" + label[1] + "]";
+			for (KFCLabel label : KFCLabels) {
+				if (label.filePath == curImg) {
+					std::string name = label.className + " [" + label.shape + "]";
 					if (ImGui::Button(name.c_str())) {
-						curLabel = label[0];
+						curLabel = label.className;
 					}
 				}
 			}

@@ -1,11 +1,12 @@
 ﻿  main.cpp
-C:\Users\Movinggun\NTU-SDI\main.cpp(87,50): warning C4100: 'canvas_size': unreferenced formal parameter
-C:\Users\Movinggun\NTU-SDI\main.cpp(107,50): warning C4100: 'canvas_size': unreferenced formal parameter
-C:\Users\Movinggun\NTU-SDI\main.cpp(144,73): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Movinggun\NTU-SDI\main.cpp(144,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Movinggun\NTU-SDI\main.cpp(140,8): warning C4189: 'ret': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(201,12): warning C4189: 'io': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(230,12): warning C4189: 'io': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(268,12): warning C4189: 'io': local variable is initialized but not referenced
-C:\Users\Movinggun\NTU-SDI\main.cpp(84): warning C4715: 'guiInit': not all control paths return a value
+C:\Users\Movinggun\NTU-SDI\main.cpp(86,43): warning C4100: 'canvas_size': unreferenced formal parameter
+C:\Users\Movinggun\NTU-SDI\main.cpp(118,9): warning C4189: 'sz': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(150,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Movinggun\NTU-SDI\main.cpp(166,73): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Movinggun\NTU-SDI\main.cpp(166,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Movinggun\NTU-SDI\main.cpp(162,8): warning C4189: 'ret': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(222,12): warning C4189: 'io': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(251,12): warning C4189: 'io': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(297,12): warning C4189: 'io': local variable is initialized but not referenced
+C:\Users\Movinggun\NTU-SDI\main.cpp(83): warning C4715: 'guiInit': not all control paths return a value
   NTU_opengl3.vcxproj -> C:\Users\Movinggun\NTU-SDI\Debug\ntu_software_design.exe
