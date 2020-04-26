@@ -1557,53 +1557,53 @@ static bool Items_SingleStringGetter(void* data, int idx, const char** out_text)
     return true;
 }
 
-// Old API, prefer using BeginCombo() nowadays if you can.
 bool ImGui::Combo(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items)
 {
-    ImGuiContext& g = *GImGui;
+	ImGuiContext& g = *GImGui;
 
-    // Call the getter to obtain the preview string which is a parameter to BeginCombo()
-    const char* preview_value = NULL;
-    if (*current_item >= 0 && *current_item < items_count)
-        items_getter(data, *current_item, &preview_value);
+	// Call the getter to obtain the preview string which is a parameter to BeginCombo()
+	const char* preview_value = NULL;
+	if (*current_item >= 0 && *current_item < items_count)
+		items_getter(data, *current_item, &preview_value);
 
-    // The old Combo() API exposed "popup_max_height_in_items". The new more general BeginCombo() API doesn't have/need it, but we emulate it here.
-    if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
-        SetNextWindowSizeConstraints(ImVec2(0,0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
+	// The old Combo() API exposed "popup_max_height_in_items". The new more general BeginCombo() API doesn't have/need it, but we emulate it here.
+	if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
+		SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 
-    if (!BeginCombo(label, preview_value, ImGuiComboFlags_None))
-        return false;
+	if (!BeginCombo(label, preview_value, ImGuiComboFlags_None))
+		return false;
 
-    // Display items
-    // FIXME-OPT: Use clipper (but we need to disable it on the appearing frame to make sure our call to SetItemDefaultFocus() is processed)
-    bool value_changed = false;
-    for (int i = 0; i < items_count; i++)
-    {
-        PushID((void*)(intptr_t)i);
-        const bool item_selected = (i == *current_item);
-        const char* item_text;
-        if (!items_getter(data, i, &item_text))
-            item_text = "*Unknown item*";
-        if (Selectable(item_text, item_selected))
-        {
-            value_changed = true;
-            *current_item = i;
-        }
-        if (item_selected)
-            SetItemDefaultFocus();
-        PopID();
-    }
+	// Display items
+	// FIXME-OPT: Use clipper (but we need to disable it on the appearing frame to make sure our call to SetItemDefaultFocus() is processed)
+	bool value_changed = false;
+	for (int i = 0; i < items_count; i++)
+	{
+		PushID((void*)(intptr_t)i);
+		const bool item_selected = (i == *current_item);
+		const char* item_text;
+		if (!items_getter(data, i, &item_text))
+			item_text = "*Unknown item*";
+		if (Selectable(item_text, item_selected))
+		{
+			value_changed = true;
+			*current_item = i;
+		}
+		if (item_selected)
+			SetItemDefaultFocus();
+		PopID();
+	}
 
-    EndCombo();
-    return value_changed;
+	EndCombo();
+	return value_changed;
 }
 
 // Combo box helper allowing to pass an array of strings.
 bool ImGui::Combo(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items)
 {
-    const bool value_changed = Combo(label, current_item, Items_ArrayGetter, (void*)items, items_count, height_in_items);
-    return value_changed;
+	const bool value_changed = Combo(label, current_item, Items_ArrayGetter, (void*)items, items_count, height_in_items);
+	return value_changed;
 }
+
 
 // Combo box helper allowing to pass all items in a single string literal holding multiple zero-terminated items "item1\0item2\0"
 bool ImGui::Combo(const char* label, int* current_item, const char* items_separated_by_zeros, int height_in_items)

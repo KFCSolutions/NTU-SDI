@@ -40,12 +40,6 @@
     <ClCompile Include="libs\gl3w\GL\gl3w.c">
       <Filter>gl3w</Filter>
     </ClCompile>
-    <ClCompile Include="KFC_Dialogs.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="KFCLabel.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui_impl_sdl.h">
@@ -76,9 +70,6 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="includes.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="KFC_Dialogs.h">
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="KFCLabel.h">
