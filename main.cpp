@@ -410,8 +410,8 @@ void initMainMenu() {
 		if (currentShape.find("Polygon") != std::string::npos) {
 			if (ImGui::TreeNode("Polygon Settings")) {
 
-				ImGui::DragFloat("Size", &polygonSize, 30.2f, 31.0f, 200.0f, "%.0f");
-				ImGui::DragInt("Edges", &polygonEdges, 1, 0, 8);
+				ImGui::SliderFloat("Size", &polygonSize, 30.2f,400.0f, "%.0f");
+				ImGui::SliderInt("Edges", &polygonEdges, 3, 8);
 				ImGui::TreePop();
 			}
 		}
@@ -433,11 +433,17 @@ void initMainMenu() {
 
 
 	if (ImGui::CollapsingHeader("Information")) {
-		ImGui::Text("KEYBINDING FOR POINTS");
+		ImGui::Text("Keybinding for points:");
 		ImGui::BulletText("POINT 1: F1");
 		ImGui::BulletText("POINT 2: F2");
 		ImGui::BulletText("POINT 3: F3");
 		ImGui::BulletText("POINT 4: F4");
+		ImGui::Text("Credits:");
+		ImGui::Text("Big shout out to everyone who helped develop this program.");
+		ImGui::BulletText("Project Manager: Cai Po Lin");
+		ImGui::BulletText("Software Designer: Matthew Underwood");
+		ImGui::BulletText("Software Developer: Jamie Lamb");
+		ImGui::BulletText("Software Tester: Kelvin Lau");
 	}
 	ImGui::End();	
 	setUpDialogs();
